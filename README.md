@@ -32,8 +32,9 @@
 
 1. **克隆项目**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/zhiheng-yu/gateway-client.git
    cd gateway-client
+   git checkout dev-python
    ```
 
 2. **环境配置**
@@ -57,26 +58,6 @@
    # 启动服务
    python src/start_api.py
    ```
-
-## API 使用
-
-### HTTP 服务注册
-```bash
-# 注册 HTTP 服务
-curl -X GET "http://localhost:2381/api/v1/gateway/http/my-service"
-
-# 访问服务
-curl -H "Host: my-service.example.com" http://example.com
-```
-
-### SSH 服务注册
-```bash
-# 注册 SSH 服务
-curl -X GET "http://localhost:2381/api/v1/gateway/ssh/my-service"
-
-# SSH 连接
-ssh user@connect.example.com -p 40001
-```
 
 ## 配置说明
 
@@ -114,7 +95,7 @@ gateway-client/
 3. 运行 `python src/start_api.py`
 4. 访问 `http://localhost:2381`
 
-### API 文档
+### 文档
 
 - Swagger UI: `http://localhost:2381/docs`
 - ReDoc: `http://localhost:2381/redoc`
