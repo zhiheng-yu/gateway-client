@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Gateway Client 主服务
+  gateway-client:
+    image: gateway-client
+
+    container_name: gateway-client
+
+    ports:
+      - "${GATEWAY_PORT:-2381}:2381"
+
+    environment:
+      # 基础配置
+      - LOCAL_IP=${LOCAL_IP:-127.0.0.1}
+
+      # ETCD 配置
+      - ETCD_HOST=${ETCD_HOST:-localhost}
+      - ETCD_PORT=${ETCD_PORT:-2379}
+
+      # SSH 端口范围配置
+      - SSH_PORT_START=${SSH_PORT_START:-40000}
+      - SSH_PORT_END=${SSH_PORT_END:-40099}
+
+      # HTTP 端点配置
+      - HTTP_ENDPOINT=${HTTP_ENDPOINT:-example.com}
+      - SSH_ENDPOINT=${SSH_ENDPOINT:-connect.example.com}
+
+      # FRP 配置
+      - FRP_HOST=${FRP_HOST:-localhost}
+      - FRP_PORT=${FRP_PORT:-7400}
+      - FRP_USERNAME=${FRP_USERNAME:-admin}
+      - FRP_PASSWORD=${FRP_PASSWORD:-123456}
+
+      # Kong 配置
+      - KONG_ADMIN_URL=${KONG_ADMIN_URL:-http://127.0.0.1:8001}
+
+      # CORS 配置
+      - ENABLE_CORS=${ENABLE_CORS:-0}
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2381/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
