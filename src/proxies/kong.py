@@ -56,6 +56,30 @@ class KongProxy:
             logger.error(f"添加 HTTP 代理时发生异常: {e}")
             return False
 
+    def update_http_proxy(self, name: str, port: int) -> bool:
+        """
+        更新 HTTP 代理
+
+        Args:
+            name: 服务和路由名称
+            port: 目标服务的端口
+
+        Returns:
+            bool: 操作是否成功
+        """
+        try:
+            # 第一步：更新服务
+            service_success = self._update_service(name, port)
+            if not service_success:
+                logger.error(f"更新服务 {name} 失败")
+                return False
+
+            logger.info(f"成功更新 HTTP 代理: {name} -> {port}")
+            return True
+        except Exception as e:
+            logger.error(f"更新 HTTP 代理时发生异常: {e}")
+            return False
+
     def delete_http_proxy(self, name: str) -> bool:
         """
         删除 HTTP 代理
@@ -109,6 +133,25 @@ class KongProxy:
                 return False
         except requests.RequestException as e:
             logger.error(f"添加服务时网络请求失败: {e}")
+            return False
+
+    def _update_service(self, name: str, port: int) -> bool:
+        """更新服务"""
+        url = f"{self.kong_admin_url}/services/http-{name}"
+        data = {
+            'port': str(port)
+        }
+
+        try:
+            response = self.session.patch(url, data=data)
+            if response.status_code == 200:
+                logger.info(f"服务 http-{name} 更新成功")
+                return True
+            else:
+                logger.error(f"更新服务失败: {response.status_code} - {response.text}")
+                return False
+        except requests.RequestException as e:
+            logger.error(f"更新服务时网络请求失败: {e}")
             return False
 
     def _add_route(self, name: str, domain: str) -> bool:

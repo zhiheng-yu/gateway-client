@@ -70,12 +70,8 @@ class EtcdHttpServiceRegister:
             self.client.close()
             logger.info("已断开 etcd 连接")
 
-    def generate_http_endpoint(self, service_name: str) -> str:
-        """生成 HTTP 访问端点"""
-        return f"{service_name}.{self.http_endpoint}"
-
-
     def register_service(self,
+                         http_endpoint: str,
                          service_name: str,
                          container_name: str,
                          http_port: int) -> bool:
@@ -97,7 +93,7 @@ class EtcdHttpServiceRegister:
                 service_name=service_name,
                 container_name=container_name,
                 http_port=http_port,
-                http_endpoint=self.generate_http_endpoint(service_name),
+                http_endpoint=http_endpoint,
                 create_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             )
 

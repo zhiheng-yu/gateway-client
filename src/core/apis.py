@@ -162,7 +162,7 @@ class GatewayClient:
                     message=f"服务 {service_name} 不存在"
                 )
 
-            # 检查HTTP服务是否已经注册
+            # 检查 HTTP 服务是否已经注册
             existing_service = self.http_register.get_service(service_name)
             if existing_service and existing_service.container_name == service.container_name:
                 logger.info(
@@ -175,8 +175,9 @@ class GatewayClient:
                     message=f"服务 {service_name} 已注册",
                     data={
                         "http_endpoint": existing_service.http_endpoint,
-                        "service_name": service_name,
-                        "container_name": existing_service.container_name
+                        "service_name": existing_service.service_name,
+                        "container_name": existing_service.container_name,
+                        "http_port": existing_service.http_port
                     }
                 )
 
@@ -196,23 +197,34 @@ class GatewayClient:
                     message=f"服务 {service_name} 没有 HTTP 端口 (80/tcp)"
                 )
 
-            # 先添加 Kong HTTP 代理
-            http_endpoint = f"{service_name}.{self.http_endpoint}"
-            kong_success = self.kong_proxy.add_http_proxy(
-                name=service_name,
-                host=self.local_ip,
-                port=http_port,
-                domain=http_endpoint
-            )
-
-            if not kong_success:
-                return ServiceResponse(
-                    success=False,
-                    message=f"Kong HTTP 代理添加失败"
+            # 服务已存在，容器名不同，进行更新
+            if existing_service and existing_service.container_name != service.container_name:
+                http_endpoint = existing_service.http_endpoint
+                kong_success = self.kong_proxy.update_http_proxy(service_name, http_port)
+                if not kong_success:
+                    return ServiceResponse(
+                        success=False,
+                        message=f"Kong HTTP 代理更新失败"
+                    )
+            else:
+                # 服务不存在，添加 Kong HTTP 代理
+                http_endpoint = f"{service_name}.{self.http_endpoint}"
+                kong_success = self.kong_proxy.add_http_proxy(
+                    name=service_name,
+                    host=self.local_ip,
+                    port=http_port,
+                    domain=http_endpoint
                 )
+
+                if not kong_success:
+                    return ServiceResponse(
+                        success=False,
+                        message=f"Kong HTTP 代理添加失败"
+                    )
 
             # 注册HTTP服务
             success = self.http_register.register_service(
+                http_endpoint=http_endpoint,
                 service_name=service_name,
                 container_name=service.container_name,
                 http_port=http_port
