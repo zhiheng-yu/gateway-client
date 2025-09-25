@@ -100,3 +100,12 @@ gateway-client/
 - Swagger UI: `http://localhost:2381/docs`
 - ReDoc: `http://localhost:2381/redoc`
 - 详细设计文档: [Gateway Client 设计文档](docs/gateway-client.md)
+
+## 🙏 特别鸣谢
+
+> [!TIP]
+> 排名不分先后
+
+* [XShengTech/gpu-docker-api](https://github.com/XShengTech/gpu-docker-api): 提供容器操作代码和思路
+* [Kong/kong](https://github.com/Kong/kong): 提供 HTTP 代理
+* [fatedier/frp](https://github.com/fatedier/frp): 提供 SSH 隧道代理
