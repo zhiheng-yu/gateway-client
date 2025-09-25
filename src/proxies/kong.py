@@ -35,13 +35,31 @@ class KongProxy:
             bool: 操作是否成功
         """
         try:
-            # 第一步：添加服务
+            # 第一步：获取服务信息
+            service_info = self._get_service(name)
+            if service_info:
+                logger.debug(f"服务 {name} 已存在，检查服务信息是否一致")
+                if (service_info['protocol'] == protocol and
+                    service_info['host'] == host and
+                    service_info['port'] == str(port)):
+                    logger.info(f"HTTP 代理已存在: {name} -> {host}:{port} (域名: {domain})")
+                    return True
+                else:
+                    logger.warning(f"服务 {name} 已存在但信息不一致，开始更新服务")
+                    update_success = self._update_service(name, port)
+                    if not update_success:
+                        logger.error(f"更新服务 {name} 失败")
+                        return False
+                    logger.info(f"成功更新 HTTP 代理: {name} -> {port}")
+                    return True
+
+            # 第二步：添加服务
             service_success = self._add_service(name, protocol, host, port)
             if not service_success:
                 logger.error(f"添加服务 {name} 失败")
                 return False
 
-            # 第二步：添加路由
+            # 第三步：添加路由
             route_success = self._add_route(name, domain)
             if not route_success:
                 logger.error(f"添加路由 {name} 失败，开始清理服务")
@@ -112,6 +130,22 @@ class KongProxy:
         except Exception as e:
             logger.error(f"删除 HTTP 代理时发生异常: {e}")
             return False
+
+    def _get_service(self, name: str) -> Optional[Dict[str, Any]]:
+        """ 获取服务信息 """
+        url = f"{self.kong_admin_url}/services/http-{name}"
+
+        try:
+            response = self.session.get(url)
+            if response.status_code == 200:
+                logger.info(f"服务 http-{name} 已存在")
+                return response.json()
+            else:
+                logger.error(f"获取服务信息失败: {response.status_code} - {response.text}")
+                return None
+        except requests.RequestException as e:
+            logger.error(f"获取服务信息时网络请求失败: {e}")
+            return None
 
     def _add_service(self, name: str, protocol: str, host: str, port: int) -> bool:
         """添加服务"""
